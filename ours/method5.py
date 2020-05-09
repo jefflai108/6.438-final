@@ -9,19 +9,19 @@ MODEL = 'gpt2-medium'
 DEV = 'cuda'
 TOP_K = 40
 LENGTH = 100
-WEIGHTS = [0.01]
 WEIGHTS = [0.01, 0.01]
+WEIGHTS = [0.02]
 
 COND = 'positive politics'
 COND = 'negative politics'
 COND = 'positive'
-COND = 'negative'
 COND = 'negative science'
 COND = 'positive science'
+COND = 'negative'
 
 PREFIX = 'To conclude'
-PREFIX = 'The chicken tastes'
 PREFIX = 'The potato'
+PREFIX = 'The chicken tastes'
 
 
 def top_k_filtering(logits, top_k=1, filter_value=-float("Inf"), min_tokens_to_keep=1):

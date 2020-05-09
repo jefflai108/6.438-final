@@ -7,21 +7,21 @@ import matplotlib.pyplot as plt
 
 MODEL = 'gpt2-medium'
 DEV = 'cuda'
-TOP_K = 40
+TOP_K = 35
 LENGTH = 100
 WEIGHTS = [0.01]
 WEIGHTS = [0.01, 0.01]
 
 COND = 'positive politics'
 COND = 'negative politics'
-COND = 'positive'
-COND = 'negative'
 COND = 'negative science'
 COND = 'positive science'
+COND = 'negative'
+COND = 'positive'
 
 PREFIX = 'To conclude'
-PREFIX = 'The chicken tastes'
 PREFIX = 'The potato'
+PREFIX = 'The chicken tastes'
 
 
 def cat_past(past, cur_past, last=False):
@@ -56,6 +56,12 @@ def top_k_filtering(logits, top_k=1, filter_value=-float("Inf"), min_tokens_to_k
 tokenizer = GPT2Tokenizer.from_pretrained(MODEL)
 model = GPT2LMHeadModel.from_pretrained(MODEL).to(DEV)
 COND_IDS = tokenizer.encode(COND)
+
+embed = model.get_input_embeddings()
+cond_embeds = embed(torch.tensor([COND_IDS]).to(DEV))[0]
+for i in range(cond_embeds.shape[0]):
+    embed.weight.data += WEIGHTS[i] * cond_embeds[i]
+
 cond_ids = torch.tensor([COND_IDS]).to(DEV)
 cond_past = [None for i in range(cond_ids.shape[1])]
 

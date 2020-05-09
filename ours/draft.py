@@ -15,20 +15,20 @@ import matplotlib.pyplot as plt
 MODEL = 'gpt2-medium'
 DEV = 'cuda'
 TOP_K = 100
-LENGTH = 20
-WEIGHT = 1
+LENGTH = 100
+WEIGHT = 0.4
 REDUCE = 'mean'
 
 COND = 'positive science'
 COND = 'negative science'
-COND = 'negative politics'
-COND = 'positive politics'
 COND = 'positive'
 COND = 'negative'
+COND = 'negative politics'
+COND = 'positive politics'
 
 PREFIX = 'The potato'
-PREFIX = 'To conclude'
 PREFIX = 'The chicken tastes'
+PREFIX = 'To conclude'
 
 
 def top_k_filtering(logits, top_k=1, filter_value=-float("Inf"), min_tokens_to_keep=1):
@@ -48,8 +48,8 @@ def conditioning(logprobs, cond_ids, model, input_ids, ids_to_retain):
         cond_logprobs = torch.max(next_logprobs[:, cond_ids], dim=-1)[0]
     elif REDUCE == 'mean':
         cond_logprobs = torch.mean(next_logprobs[:, cond_ids], dim=-1)
-    cond_logprobs /= (torch.max(cond_logprobs) - torch.min(cond_logprobs))
-    cond_logprobs *= (torch.max(logprobs[:, ids_to_retain]) - torch.min(logprobs[:, ids_to_retain]))
+    # cond_logprobs /= (torch.max(cond_logprobs) - torch.min(cond_logprobs))
+    # cond_logprobs *= (torch.max(logprobs[:, ids_to_retain]) - torch.min(logprobs[:, ids_to_retain]))
 
     # print(logprobs[:, ids_to_retain])
     # print('-' * 80)
