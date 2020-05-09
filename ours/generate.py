@@ -1,7 +1,7 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import argparse
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, GPT2Config
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -25,12 +25,15 @@ args = parser.parse_args()
 args.cond_weights = torch.tensor(args.cond_weights).to(args.device)
 
 
+config = GPT2Config.from_pretrained(args.model)
+config.torchscript = True  # in order to untie input and output embedding
 tokenizer = GPT2Tokenizer.from_pretrained(args.model)
-model = GPT2LMHeadModel.from_pretrained(args.model).to(args.device)
+model = GPT2LMHeadModel.from_pretrained(args.model, config=config).to(args.device)
 cond_ids = tokenizer.encode(args.condition)
 cond_ids = torch.tensor([cond_ids]).to(args.device)
 
 # Apply conditioning on embedding weights
+out_embed = model.get_output_embeddings()
 embed = model.get_input_embeddings()
 cond_embeds = embed(cond_ids)[0]
 for i in range(cond_embeds.shape[0]):
