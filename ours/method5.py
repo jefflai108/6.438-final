@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 MODEL = 'gpt2-medium'
 DEV = 'cuda'
-TOP_K = 40
-LENGTH = 100
+TOP_K = 10
+LENGTH = 50
 WEIGHTS = [0.01, 0.01]
 WEIGHTS = [0.02]
 
@@ -21,7 +21,7 @@ COND = 'negative'
 
 PREFIX = 'To conclude'
 PREFIX = 'The potato'
-PREFIX = 'The chicken tastes'
+PREFIX = 'The following is a negative sentence. The chicken tastes'
 
 
 def top_k_filtering(logits, top_k=1, filter_value=-float("Inf"), min_tokens_to_keep=1):
@@ -36,21 +36,32 @@ tokenizer = GPT2Tokenizer.from_pretrained(MODEL)
 model = GPT2LMHeadModel.from_pretrained(MODEL).to(DEV)
 COND_IDS = torch.tensor([tokenizer.encode(COND)]).to(DEV)
 
-embed = model.get_input_embeddings()
-cond_embeds = embed(COND_IDS)[0]
-for i in range(cond_embeds.shape[0]):
-    embed.weight.data += WEIGHTS[i] * cond_embeds[i]
+# embed = model.get_input_embeddings()
+# cond_embeds = embed(COND_IDS)[0]
+# for i in range(cond_embeds.shape[0]):
+#     embed.weight.data += WEIGHTS[i] * cond_embeds[i]
 
 
 input_ids = torch.tensor([tokenizer.encode(PREFIX, add_special_tokens=True)]).to(DEV)
-past = model(input_ids[:, :-1])[1]
+# past = model(input_ids[:, :-1])[1]
 
+for t in range(input_ids.shape[1], LENGTH):  # +1 for the last time step of prefix
 
-for t in range(input_ids.shape[1]-1, LENGTH):  # +1 for the last time step of prefix
+    # model = GPT2LMHeadModel.from_pretrained(MODEL).to(DEV)
+    # criterion = torch.nn.CrossEntropyLoss()
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.00008)
+    # for step in range(1):
+    #     logits, _  = model(input_ids)
+    #     loss = criterion(logits[:, -1], COND_IDS[0])
+    #     model.zero_grad()
+    #     loss.backward()
+    #     # clip_grad_norm(model.parameters(), 0.5)
+    #     optimizer.step()
+
 
     with torch.no_grad():
-        logits, past  = model(input_ids[:, -1:], past=past)
-        logits = logits[:, 0]
+        logits, _  = model(input_ids)
+        logits = logits[:, -1]
         logits, ids_to_retain = top_k_filtering(logits, TOP_K)
         probs = F.softmax(logits, dim=-1)
         next_tokens = torch.multinomial(probs, num_samples=1)

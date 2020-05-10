@@ -1,7 +1,7 @@
 #!/bin/bash
 
-for cond in "positive" "negative" ; do
-  for prefix in "The chicken tastes" "The following is a $cond sentence. The chicken tastes"; do
+for cond in "negative" "positive" ; do
+  for prefix in "The following is a $cond sentence. The chicken tastes" "The chicken tastes" ; do
     echo "============================================="
     echo $cond
     echo $prefix
@@ -21,7 +21,7 @@ for cond in "Space" "military" "science" "politics" "computers"; do
 done
 
 for cond in "positive" "negative" ; do
-  for prefix in "To conclude" "The following is a $cond sentence about politics. To conclude"; do
+  for prefix in "To conclude" "The following is a $cond article about politics. To conclude"; do
     echo "============================================="
     echo $cond "politics"
     echo $prefix
