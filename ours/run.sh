@@ -9,7 +9,7 @@ for cond in "negative" "positive" ; do
     python generate.py --prefix "$prefix" --condition "$cond" "$@"
   done
 done
-
+exit 0
 for cond in "Space" "military" "science" "politics" "computers"; do
   for prefix in "The issue focused" "The following is an article about $cond. The issue focused" ; do
     echo "============================================="
