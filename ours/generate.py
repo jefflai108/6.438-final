@@ -123,7 +123,7 @@ for i in range(args.num_samples):
     
     output = tokenizer.decode(input_ids[0])
     decode_outputs.append(output)
-    pritn(output)
+    print(output)
 
 # print(input_ids[0].cpu().numpy().tolist())
 #pritn(tokenizer.decode(input_ids[0]))
