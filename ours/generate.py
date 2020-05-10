@@ -31,9 +31,6 @@ parser.add_argument(
 args = parser.parse_args()
 args.cond_weights = torch.tensor(args.cond_weights).to(args.device)
 
-print(args.condition)
-print(args.prefix)
-
 config = GPT2Config.from_pretrained(args.model)
 config.torchscript = True  # in order to untie input and output embedding
 tokenizer = GPT2Tokenizer.from_pretrained(args.model)
