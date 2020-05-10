@@ -114,6 +114,4 @@ for _ in range(input_ids.shape[1]-1, args.length):  # +1 for the last time step 
 
 
 # print(input_ids[0].cpu().numpy().tolist())
-output = tokenizer.decode(input_ids[0])
-
-return output 
+pritn(tokenizer.decode(input_ids[0]))
