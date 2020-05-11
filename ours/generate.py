@@ -26,7 +26,9 @@ def run_generate(
     config = GPT2Config.from_pretrained(model_type)
     config.torchscript = True  # in order to untie input and output embedding
     tokenizer = GPT2Tokenizer.from_pretrained(model_type)
-    cond_ids = tokenizer.encode(condition, add_prefix_space=True)[0] # fix multiple tokens
+
+    cond_ids = tokenizer.encode(condition, add_prefix_space=True) # fix multiple tokens
+    cond_ids = [cond_ids[0]]
     #cond_ids = tokenizer.encode(condition)
     comma = tokenizer.encode(prefix, add_special_tokens=True)
     comma = comma.index(13) if 13 in comma else -1
@@ -40,17 +42,21 @@ def run_generate(
         # Apply conditioning on embedding weights
         out_embed = model.get_output_embeddings()
         embed = model.get_input_embeddings()
-        cond_embeds = embed(cond_ids)[0]
+
+        #for condition in ["Religion", "Military", "Politics"]:
+        #    cond_ids = tokenizer.encode(condition, add_prefix_space=True)[0]
+        #    cond_ids = torch.tensor([cond_ids]).to(device)
+        #    cond_embeds = embed(cond_ids)[0].reshape(1, -1)
+        #    print(cond_embeds.shape)
+        cond_embeds = embed(cond_ids)
         #print(cond_embeds.shape)
         for i in range(cond_embeds.shape[0]):
             embed.weight.data += embed_weights[i] * cond_embeds[i]
         embed.weight.data /= (1 + sum(embed_weights))
 
-
         input_ids = torch.tensor([tokenizer.encode(prefix, add_special_tokens=True)]).to(device)
         input_past = model(input_ids[:, :-1])[1]
         org_past = org_model(input_ids[:, :-1])[1]
-
 
         cond_past = [None for i in range(cond_ids.shape[1])]
         for t in range(input_ids.shape[1]-1):
