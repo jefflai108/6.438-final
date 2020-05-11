@@ -757,9 +757,9 @@ def run_pplm_example(
             add_special_tokens=False
         )
 
-    print("= Prefix of sentence =")
-    print(tokenizer.decode(tokenized_cond_text))
-    print()
+    #print("= Prefix of sentence =")
+    #print(tokenizer.decode(tokenized_cond_text))
+    #print()
 
     # generate unperturbed and perturbed texts
 
@@ -798,9 +798,9 @@ def run_pplm_example(
     
     if verbosity_level >= REGULAR:
         print("=" * 80)
-    print("= Unperturbed generated text =")
-    print(unpert_gen_text)
-    print()
+    #print("= Unperturbed generated text =")
+    #print(unpert_gen_text)
+    #print()
 
     bow_word_ids = set()
     if bag_of_words and colorama:
@@ -832,9 +832,9 @@ def run_pplm_example(
             else:
                 pert_gen_text = tokenizer.decode(pert_gen_tok_text.tolist()[0])
 
-            print("= Perturbed generated text {} =".format(i + 1))
-            print(pert_gen_text)
-            print()
+            #print("= Perturbed generated text {} =".format(i + 1))
+            #print(pert_gen_text)
+            #print()
             generated_texts.append(pert_gen_text)
         except:
             pass
