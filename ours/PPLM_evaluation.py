@@ -134,11 +134,12 @@ def test_evaluation(a):
     evaluate_all(a)
 
 # # Generate examples with our methods 
+from generate import run_generate
 def generate_text_with_our_methods():
 
     # loop over prefix and conditions and log the generated sentences and evaluation scores
-    for condition in ["Computers", "Religion", "Military", "Politics", "Science", "Legal", "Space", "Computers"]:
-        for prefix1 in ["The house", "The pizza", "The potato", "The lake"]:
+    for condition in ["Religion", "Military", "Politics", "Science", "Legal", "Space", "Computers", "Technology"]:
+        for prefix1 in ["The chiken", "The house", "The pizza", "The potato", "The lake"]:
             prefix2 = "The following is an article about " + condition + ". " + prefix1
             # print(prefix2) # added the following 
             for prefix in [prefix1, prefix2]: 
@@ -161,73 +162,49 @@ def generate_text_with_our_methods():
                 print('********\n')
 
 # # Generate examples with PPLM
-from run_pplm_evaluation import run_pplm_evaluation
 def generate_text_with_pplm():
-
-    # loop over prefix and conditions and log the generated sentences and evaluation scores
-    for condition in ["Computers", "Religion", "Military", "Politics", "Science", "Legal", "Space", "Computers"]:
-        for prefix1 in ["The house", "The pizza", "The potato", "The lake"]:
-            prefix2 = "The following is an article about " + condition + ". " + prefix1
-            # print(prefix2) # added the following 
-            for prefix in [prefix1, prefix2]: 
+    for condition in ["military", "religion", "politics", "science", "legal", "space", "technology"]:
+        for prefix1 in ["The chiken", "The house", "The pizza", "The potato", "The lake"]:
+            for prefix in [prefix1]: 
                 print('Condition:', condition)
                 print('Prefix:', prefix)
-                perplexit_scores = []
-                diversity_scores = []
-                for k in range(20): # generate 100 samples per combination
-                    a_lst = run_generate(prefix=prefix, condition=condition, length=100, device=device)
-                    a_str = [''.join(a for a in a_lst)]
-                    #print(a_str)
-                    perplexit_scores.append(np.mean([perplexity_score(text, per_model, tokenizer) for text in a_str]))
-                    diversity_scores.append(diversity(a_str))
-                #evaluate_all(all_text)
-                print('Perplexity score %.3f' % np.mean(perplexit_scores))
-                print('Diversity score:')
-                print('\t Dist-1: %.3f' % np.mean([a[0] for a in diversity_scores])) 
-                print('\t Dist-2: %.3f' % np.mean([a[1] for a in diversity_scores])) 
-                print('\t Dist-3: %.3f' % np.mean([a[2] for a in diversity_scores])) 
+                all_text = []
+                for _ in range(1): # generate 100 samples per combination
+                    generated_texts = run_pplm_example(
+                                            cond_text=prefix,
+                                            num_samples=20,
+                                            bag_of_words=condition,
+                                            length=100,
+                                            stepsize=0.03,
+                                            sample=True,
+                                            num_iterations=3,
+                                            window_length=5,
+                                            gamma=1.5,
+                                            gm_scale=0.95,
+                                            kl_scale=0.01,
+                                            verbosity='quiet'
+                                        )
+                    # get rid of the beginning '<|endoftext|>'
+                    processed_texts = [sample.replace('<|endoftext|>','') for sample in generated_texts]
+                    #print(processed_texts)
+                    #print('')
+                    print('Original perplexity score: %.3f' % perplexity_score(processed_texts[0], per_model, tokenizer))
+                    avg_pplm_ppl = np.mean([perplexity_score(text, per_model, tokenizer) for text in processed_texts[1:]])
+                    print('Perplexity score over %d samples: %.3f' % (len(processed_texts[1:]), avg_pplm_ppl))
+                    diversity_scores = []
+                    for text in processed_texts[1:]:
+                        diversity_scores.append(diversity([text]))
+                    print('Diversity score over %d samples:' % len(processed_texts[1:])) 
+                    print('\t Dist-1 %.3f' % np.mean([a[0] for a in diversity_scores]))
+                    print('\t Dist-2 %.3f' % np.mean([a[1] for a in diversity_scores]))
+                    print('\t Dist-3 %.3f' % np.mean([a[2] for a in diversity_scores]))
                 print('********\n')
-
-def evaluate_pplm():
-    # test run --> loop this over ALL conditioned text --> probably store them in dictionaries; so during evaluation the printouts are prettier
-
-    from run_pplm_evaluation import run_pplm_evaluation
-    generated_texts = run_pplm_evaluation(
-        cond_text="Once upon a time",
-        num_samples=5,
-        discrim='sentiment',
-        class_label='very_positive',
-        length=50,
-        stepsize=0.05,
-        sample=True,
-        num_iterations=10,
-        gamma=1,
-        gm_scale=0.9,
-        kl_scale=0.02,
-        verbosity='quiet'
-    )
-
-
-    # Compute the perplexity for original unperturbed and PPLM perturbed texts
-
-    import numpy as np 
-
-    print('Evaluate Perplexity with GPT-2')
-    print(generated_texts)
-    # get rid of the beginning '<|endoftext|>'
-    processed_texts = [sample.replace('<|endoftext|>','') for sample in generated_texts]
-    print(processed_texts)
-    print('')
-    print('Original perplexity score: %f' % perplexity_score(processed_texts[0], model, tokenizer))
-    print('')
-    avg_pplm_ppl = np.mean([perplexity_score(text, model, tokenizer) for text in processed_texts[1:]])
-    print('PPLM perplexity score over %d samples: %f' % (len(processed_texts[1:]), avg_pplm_ppl))
-
 
 if __name__ == '__main__':
     
     a=["""My dog died in February, after suffering from severe arthritis. He had been suffering with a terrible cold that was causing his skin to break. I couldn't afford a replacement dog and couldn't afford to have him taken to the vet. I knew the vet would be""",
   """My dog died after getting stuck in a tree... I don't wish this to happen to my favorite character from one of my favorite movies, \"The Magnificent Seven." "It's all sad when someone dies so well." The Magnificent Seven movie was""",
   """My name is Jeff. How are you?"""]
-    #test_evaluation(a)
-    generate_text_with_our_methods()
+    test_evaluation(a)
+    #generate_text_with_our_methods()
+    generate_text_with_pplm()
