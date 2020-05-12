@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 from utils import cat_past, add_past, top_k_filtering, repeat_past, conditioning
 
 def run_generate(
-        model_type='gpt2-medium', 
-        device='cuda', 
-        top_k=12, 
+        model_type='gpt2-medium',
+        device='cuda',
+        top_k=12,
         length=50,
-        embed_weights=[0.04], 
-        attn_weights=[0.02], 
+        embed_weights=[0.04],
+        attn_weights=[0.02],
         cond_weights=[0.20],
         prefix='To conclude',
         special_length=3,
@@ -28,17 +28,18 @@ def run_generate(
     tokenizer = GPT2Tokenizer.from_pretrained(model_type)
 
     cond_ids = tokenizer.encode(condition, add_prefix_space=True) # fix multiple tokens
-    cond_ids = [cond_ids[0]]
+    # cond_ids = [cond_ids[0]]
     #cond_ids = tokenizer.encode(condition)
     comma = tokenizer.encode(prefix, add_special_tokens=True)
     comma = comma.index(13) if 13 in comma else -1
     cond_ids = torch.tensor([cond_ids]).to(device)
-    model = GPT2LMHeadModel.from_pretrained(model_type, config=config).to(device)
-    org_model = GPT2LMHeadModel.from_pretrained(model_type).to(device)
 
     decode_outputs = []
     for i in range(num_samples):
-        
+
+        model = GPT2LMHeadModel.from_pretrained(model_type, config=config).to(device)
+        org_model = GPT2LMHeadModel.from_pretrained(model_type).to(device)
+
         # Apply conditioning on embedding weights
         out_embed = model.get_output_embeddings()
         embed = model.get_input_embeddings()
@@ -48,7 +49,7 @@ def run_generate(
         #    cond_ids = torch.tensor([cond_ids]).to(device)
         #    cond_embeds = embed(cond_ids)[0].reshape(1, -1)
         #    print(cond_embeds.shape)
-        cond_embeds = embed(cond_ids)
+        cond_embeds = embed(cond_ids)[0]
         #print(cond_embeds.shape)
         for i in range(cond_embeds.shape[0]):
             embed.weight.data += embed_weights[i] * cond_embeds[i]
@@ -116,28 +117,29 @@ def run_generate(
                     cond_past[i] = tuple(cond_past[i])
                 past = add_past(input_past, cond_past, attn_weights, cnt)
 
-            top_k = min(16, top_k + 1)
+            top_k = min(30, top_k + 1)
             t += 1
             cnt += 1
-        
+
         output = tokenizer.decode(input_ids[0])
+        print(output)
         decode_outputs.append(output)
 
     return decode_outputs
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='gpt2-medium')
+    parser.add_argument('--model_type', type=str, default='gpt2-medium')
     parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument('--top_k', type=int, default=12)
+    parser.add_argument('--top_k', type=int, default=15)
     parser.add_argument('--length', type=int, default=50)
-    parser.add_argument('--embed_weights', nargs='+', type=float,default=[0.04])
-    parser.add_argument('--attn_weights', nargs='+', type=float, default=[0.02])
-    parser.add_argument('--cond_weights', nargs='+', type=float, default=[0.20])
-    parser.add_argument('--prefix', type=str, default='To conclude')
-    parser.add_argument('--special_length', type=int, default=3)
-    parser.add_argument('--condition', type=str, default='positive politics')
-    parser.add_argument('--num_samples', type=int, default=1)
+    parser.add_argument('--embed_weights', nargs='+', type=float,default=[0.04, 0.04, 0.04])
+    parser.add_argument('--attn_weights', nargs='+', type=float, default=[0.02, 0.02, 0.02])
+    parser.add_argument('--cond_weights', nargs='+', type=float, default=[0.20, 0.20, 0.20])
+    parser.add_argument('--prefix', type=str, default='The following is a positive article about science, military. To conclude')
+    parser.add_argument('--special_length', type=int, default=15)
+    parser.add_argument('--condition', type=str, default='positive science military')
+    parser.add_argument('--num_samples', type=int, default=20)
     args = parser.parse_args()
 
     run_generate(**vars(args))
