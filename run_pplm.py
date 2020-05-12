@@ -701,7 +701,8 @@ def run_pplm_example(
         seed=0,
         no_cuda=False,
         colorama=False,
-        verbosity='regular'
+        verbosity='regular',
+        device="cuda"
 ):
     # set Random seed
     torch.manual_seed(seed)
@@ -711,7 +712,8 @@ def run_pplm_example(
     verbosity_level = VERBOSITY_LEVELS.get(verbosity.lower(), REGULAR)
 
     # set the device
-    device = "cuda" if torch.cuda.is_available() and not no_cuda else "cpu"
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() and not no_cuda else "cpu"
 
     if discrim == 'generic':
         set_generic_model_params(discrim_weights, discrim_meta)
